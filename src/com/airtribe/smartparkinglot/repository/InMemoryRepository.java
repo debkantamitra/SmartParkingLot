@@ -1,28 +1,26 @@
 package com.airtribe.smartparkinglot.repository;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public class InMemoryRepository<T> implements Repository<T> {
-    private final Map<String, T> values = new LinkedHashMap<>();
+    private final ConcurrentMap<String, T> values = new ConcurrentHashMap<>();
 
     @Override
     public void add(String id, T value) {
-        if (values.containsKey(id)) {
+        if (values.putIfAbsent(id, value) != null) {
             throw new IllegalStateException("Record already exists: " + id);
         }
-        values.put(id, value);
     }
 
     @Override
     public void update(String id, T value) {
-        if (!values.containsKey(id)) {
+        if (values.replace(id, value) == null) {
             throw new IllegalStateException("Record does not exist: " + id);
         }
-        values.put(id, value);
     }
 
     @Override
